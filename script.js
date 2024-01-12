@@ -3,6 +3,18 @@ let listItems = document.querySelector("#item-list");
 let item = document.querySelector("#item-input");
 let clearBtn = document.querySelector("#clear");
 let filter = document.querySelector("#filter");
+let formBtn = form.querySelector("button");
+let editMode = false;
+
+function displatItems() {
+  let itemsFromStorage = getItemsFromStorage();
+
+  itemsFromStorage.forEach((item) => {
+    addItemToDOM(item);
+  });
+
+  checkUI();
+}
 
 //Add Item Function
 function onAddItemSubmit(e) {
@@ -13,6 +25,15 @@ function onAddItemSubmit(e) {
   if (newItem === "") {
     alert("Please input list item");
     return;
+  }
+  //if on edit mode
+  if (editMode) {
+    let itemToEdit = listItems.querySelector(".edit-mode");
+
+    removeItemFromStorage(itemToEdit.textContent);
+    itemToEdit.classList.remove("edit-mode");
+    itemToEdit.remove();
+    editMode = false;
   }
 
   addItemToDOM(newItem);
@@ -37,6 +58,14 @@ function addItemToDOM(item) {
 }
 // Add Items to Local Storage
 function addItemToStorage(item) {
+  let itemsFromStorage = getItemsFromStorage();
+
+  itemsFromStorage.push(item);
+
+  localStorage.setItem("items", JSON.stringify(itemsFromStorage));
+}
+//Get Items from Storage
+function getItemsFromStorage() {
   let itemsFromStorage;
 
   if (localStorage.getItem("items") === null) {
@@ -45,9 +74,7 @@ function addItemToStorage(item) {
     itemsFromStorage = JSON.parse(localStorage.getItem("items"));
   }
 
-  itemsFromStorage.push(item);
-
-  localStorage.setItem("items", JSON.stringify(itemsFromStorage));
+  return itemsFromStorage;
 }
 
 //Create Button
@@ -65,14 +92,49 @@ function createIcon(classes) {
   return icon;
 }
 
-//Remove Item
-function removeItem(e) {
+function onClickItem(e) {
   if (e.target.parentElement.classList.contains("remove-item")) {
-    if (confirm("Are u sure?")) {
-      e.target.parentElement.parentElement.remove();
-      checkUI();
-    }
+    removeItem(e.target.parentElement.parentElement);
+  } else {
+    setItemToEdit(e.target);
   }
+}
+
+function setItemToEdit(editItem) {
+  editMode = true;
+
+  listItems.querySelectorAll("li").forEach((i) => {
+    i.classList.remove("edit-mode");
+  });
+
+  formBtn.innerHTML = `<i class="fa-solid fa-pen"></i> Update Item`;
+  formBtn.style.backgroundColor = "#228B22";
+  item.value = editItem.textContent;
+  editItem.setAttribute("class", "edit-mode");
+}
+
+//Remove Item
+function removeItem(item) {
+  if (confirm("Are u sure?")) {
+    //remove item from DOM
+    item.remove();
+
+    //Remove item from Storage
+    removeItemFromStorage(item.textContent);
+
+    checkUI();
+  }
+}
+
+function removeItemFromStorage(item) {
+  let itemsFromStorage = getItemsFromStorage();
+
+  //Filter array
+  itemsFromStorage = itemsFromStorage.filter((i) => {
+    return i !== item;
+  });
+
+  localStorage.setItem("items", JSON.stringify(itemsFromStorage));
 }
 //Clear all
 
@@ -80,10 +142,15 @@ function clearAll() {
   while (listItems.firstChild) {
     listItems.removeChild(listItems.firstChild);
   }
+  //Clear localStorage
+  localStorage.removeItem("items");
+
   checkUI();
 }
 //Check UI
 function checkUI() {
+  item.value = "";
+
   const items = listItems.querySelectorAll("li");
   if (items.length === 0) {
     clearBtn.style.display = "none";
@@ -92,6 +159,11 @@ function checkUI() {
     clearBtn.style.display = "block";
     filter.style.display = "block";
   }
+
+  formBtn.innerHTML = `<i class="fa-solid fa-plus"></i> Add Item`;
+  formBtn.style.backgroundColor = "#333";
+
+  editMode = false;
 }
 
 //Filter Items
@@ -110,9 +182,14 @@ function filterItems(e) {
   });
 }
 
-form.addEventListener("submit", onAddItemSubmit);
-listItems.addEventListener("click", removeItem);
-clearBtn.addEventListener("click", clearAll);
-filter.addEventListener("input", filterItems);
+function init() {
+  form.addEventListener("submit", onAddItemSubmit);
+  listItems.addEventListener("click", onClickItem);
+  clearBtn.addEventListener("click", clearAll);
+  filter.addEventListener("input", filterItems);
+  document.addEventListener("DOMContentLoaded", displatItems);
 
-checkUI();
+  checkUI();
+}
+
+init();
