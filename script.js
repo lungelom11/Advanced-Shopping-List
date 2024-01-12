@@ -34,6 +34,12 @@ function onAddItemSubmit(e) {
     itemToEdit.classList.remove("edit-mode");
     itemToEdit.remove();
     editMode = false;
+  } else {
+    if (checkIfItemExists(newItem)) {
+      alert("Item already Exists");
+      item.value = "";
+      return;
+    }
   }
 
   addItemToDOM(newItem);
@@ -164,6 +170,11 @@ function checkUI() {
   formBtn.style.backgroundColor = "#333";
 
   editMode = false;
+}
+//Check if Item exists
+function checkIfItemExists(item) {
+  let itemsFromStorage = getItemsFromStorage();
+  return itemsFromStorage.includes(item);
 }
 
 //Filter Items
