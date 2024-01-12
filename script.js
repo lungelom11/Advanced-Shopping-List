@@ -5,7 +5,7 @@ let clearBtn = document.querySelector("#clear");
 let filter = document.querySelector("#filter");
 
 //Add Item Function
-function addItem(e) {
+function onAddItemSubmit(e) {
   e.preventDefault();
   let newItem = item.value;
 
@@ -14,17 +14,42 @@ function addItem(e) {
     alert("Please input list item");
     return;
   }
+
+  addItemToDOM(newItem);
+
+  //Add items to local storage
+  addItemToStorage(newItem);
+
+  checkUI();
+
+  item.value = "";
+}
+
+//Add Item To the DOM
+function addItemToDOM(item) {
   let li = document.createElement("li");
-  li.appendChild(document.createTextNode(newItem));
+  li.appendChild(document.createTextNode(item));
 
   let button = createButton("remove-item btn-link text-red");
   li.appendChild(button);
 
   listItems.appendChild(li);
-  checkUI();
-
-  item.value = "";
 }
+// Add Items to Local Storage
+function addItemToStorage(item) {
+  let itemsFromStorage;
+
+  if (localStorage.getItem("items") === null) {
+    itemsFromStorage = [];
+  } else {
+    itemsFromStorage = JSON.parse(localStorage.getItem("items"));
+  }
+
+  itemsFromStorage.push(item);
+
+  localStorage.setItem("items", JSON.stringify(itemsFromStorage));
+}
+
 //Create Button
 function createButton(classes) {
   let button = document.createElement("button");
@@ -85,7 +110,7 @@ function filterItems(e) {
   });
 }
 
-form.addEventListener("submit", addItem);
+form.addEventListener("submit", onAddItemSubmit);
 listItems.addEventListener("click", removeItem);
 clearBtn.addEventListener("click", clearAll);
 filter.addEventListener("input", filterItems);
