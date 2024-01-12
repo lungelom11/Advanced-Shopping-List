@@ -1,3 +1,3 @@
-#Shopping List
+# Shopping List
 
-Basic CRUD front-end project using vanilla Javascript.
+Basic CRUD front-end project using vanilla Javascript and storing data to the Local Storage.
